@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Login System</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #333;
+      overflow: hidden;
+    }
+
+    .login-container {
+      background: #fff;
+      padding: 40px 35px;
+      border-radius: 18px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+      transition: all 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: #2575fc;
+      outline: none;
+      transform: scale(1.02);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2575fc;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background: #1b5ed3;
+      transform: translateY(-2px);
+    }
+
+    #message {
+      margin-top: 15px;
+      font-weight: 500;
+      font-size: 14px;
+      min-height: 20px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #message.visible {
+      opacity: 1;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .footer a {
+      color: #2575fc;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .dashboard {
+      display: none;
+      text-align: center;
+      background: white;
+      padding: 50px 40px;
+      border-radius: 18px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .dashboard h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .dashboard p {
+      color: #666;
+    }
+
+    .logout-btn {
+      margin-top: 25px;
+      padding: 10px 20px;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c53030;
+    }
+
+    @media (max-width: 420px) {
+      .login-container, .dashboard {
+        width: 90%;
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- === Login Page === -->
+  <div class="login-container" id="loginContainer">
+    <h2>Welcome Back 👋</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username" required />
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required />
+      </div>
+      <button type="submit">Login</button>
+      <p id="message"></p>
+    </form>
+    <div class="footer">
+      <p>Forgot password? <a href="#" id="forgotLink">Click here</a></p>
+    </div>
+  </div>
+
+  <!-- === Dashboard === -->
+  <div class="dashboard" id="dashboard">
+    <h2 id="welcomeUser"></h2>
+    <p>You have successfully logged in 🎉</p>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+    const loginContainer = document.getElementById("loginContainer");
+    const dashboard = document.getElementById("dashboard");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const welcomeUser = document.getElementById("welcomeUser");
+    const forgotLink = document.getElementById("forgotLink");
+
+    // ✅ Predefined users
+    const validUsers = [
+      { username: "admin", password: "12345" },
+      { username: "arsh", password: "arsh@123" },
+      { username: "demo", password: "demo123" }
+    ];
+
+    // Load saved session
+    window.onload = () => {
+      const savedUser = localStorage.getItem("loggedInUser");
+      if (savedUser) showDashboard(savedUser);
+    };
+
+    // Handle login
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      const user = validUsers.find(
+        u => u.username === username && u.password === password
+      );
+
+      if (user) {
+        showMessage("✅ Login Successful! Redirecting...", "green");
+        localStorage.setItem("loggedInUser", username);
+        setTimeout(() => showDashboard(username), 1000);
+      } else {
+        showMessage("❌ Invalid Username or Password!", "red");
+      }
+    });
+
+    // Forgot password feature
+    forgotLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      const username = prompt("Enter your username to reset password:");
+      const user = validUsers.find(u => u.username === username);
+      if (user) {
+        alert(`Hi ${username}, your password is: ${user.password}`);
+      } else {
+        alert("User not found! Please check your username.");
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("loggedInUser");
+      dashboard.style.display = "none";
+      loginContainer.style.display = "block";
+      loginForm.reset();
+      message.textContent = "";
+      message.classList.remove("visible");
+    });
+
+    // Show message helper
+    function showMessage(text, color) {
+      message.style.color = color;
+      message.textContent = text;
+      message.classList.add("visible");
+    }
+
+    // Show dashboard helper
+    function showDashboard(username) {
+      welcomeUser.textContent = `Hello, ${username}!`;
+      loginContainer.style.display = "none";
+      dashboard.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
